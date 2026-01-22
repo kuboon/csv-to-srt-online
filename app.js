@@ -160,6 +160,12 @@ uploadButton.addEventListener('click', function() {
 fileInput.addEventListener('change', function(event) {
     const file = event.target.files[0];
     if (file) {
+        // Validate file type
+        if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
+            alert('Please select a CSV file.');
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
             csvInput.value = e.target.result;
@@ -180,7 +186,7 @@ downloadButton.addEventListener('click', function() {
     }
     
     // Create a blob with the SRT content
-    const blob = new Blob([srtContent], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([srtContent], { type: 'application/x-subrip' });
     
     // Create download link
     const url = URL.createObjectURL(blob);
