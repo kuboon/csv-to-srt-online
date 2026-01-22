@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to SRT Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            min-width: 0;
+        }
+
+        .panel:first-child {
+            border-right: 2px solid #ddd;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            padding: 12px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .button-container {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:active {
+            background-color: #3d8b40;
+        }
+
+        .info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Responsive layout - switch to vertical on portrait orientation or narrow screens */
+        @media (max-aspect-ratio: 1/1), (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .panel:first-child {
+                border-right: none;
+                border-bottom: 2px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <h2>CSV Input</h2>
+            <textarea id="csvInput" placeholder="Paste your CSV here...&#10;Format: Speaker Name, Start Time, End Time, Text&#10;Example:&#10;,00:00:00:13,00:00:02:06,運営します&#10;,00:00:02:06,00:00:03:29,言いますね"></textarea>
+            <div class="info">Paste CSV with format: Speaker Name, Start Time, End Time, Text</div>
+        </div>
+        <div class="panel">
+            <h2>SRT Output</h2>
+            <textarea id="srtOutput" readonly placeholder="SRT output will appear here..."></textarea>
+            <div class="button-container">
+                <button id="copyButton">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const csvInput = document.getElementById('csvInput');
+        const srtOutput = document.getElementById('srtOutput');
+        const copyButton = document.getElementById('copyButton');
+
+        // Convert time from HH:MM:SS:FF format to HH:MM:SS,mmm format
+        // Assuming FF is frames at 30fps (standard frame rate)
+        function convertTime(timeStr) {
+            if (!timeStr || timeStr.trim() === '') {
+                return null;
+            }
+
+            const parts = timeStr.trim().split(':');
+            if (parts.length !== 4) {
+                return null;
+            }
+
+            const hours = parts[0].padStart(2, '0');
+            const minutes = parts[1].padStart(2, '0');
+            const seconds = parts[2].padStart(2, '0');
+            const frames = parseInt(parts[3], 10);
+
+            // Convert frames to milliseconds (assuming 30fps)
+            const milliseconds = Math.round((frames / 30) * 1000);
+            const ms = milliseconds.toString().padStart(3, '0');
+
+            return `${hours}:${minutes}:${seconds},${ms}`;
+        }
+
+        // Parse CSV and convert to SRT
+        function csvToSrt(csvText) {
+            if (!csvText || csvText.trim() === '') {
+                return '';
+            }
+
+            const lines = csvText.split('\n');
+            const subtitles = [];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Skip empty lines and header
+                if (!line || line.toLowerCase().includes('speaker name')) {
+                    continue;
+                }
+
+                // Parse CSV line (simple parser that handles basic CSV)
+                const fields = parseCSVLine(line);
+                
+                if (fields.length >= 4) {
+                    const startTime = convertTime(fields[1]);
+                    const endTime = convertTime(fields[2]);
+                    const text = fields[3];
+
+                    if (startTime && endTime && text && text.trim() !== '') {
+                        subtitles.push({
+                            start: startTime,
+                            end: endTime,
+                            text: text.trim()
+                        });
+                    }
+                }
+            }
+
+            // Generate SRT format
+            let srt = '';
+            for (let i = 0; i < subtitles.length; i++) {
+                const sub = subtitles[i];
+                srt += `${i + 1}\n`;
+                srt += `${sub.start} --> ${sub.end}\n`;
+                srt += `${sub.text}\n`;
+                if (i < subtitles.length - 1) {
+                    srt += '\n';
+                }
+            }
+
+            return srt;
+        }
+
+        // Simple CSV line parser
+        function parseCSVLine(line) {
+            const fields = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    fields.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            fields.push(current);
+
+            return fields;
+        }
+
+        // Convert CSV to SRT on input
+        csvInput.addEventListener('input', function() {
+            const srt = csvToSrt(this.value);
+            srtOutput.value = srt;
+        });
+
+        // Select all text when output textarea is focused
+        srtOutput.addEventListener('focus', function() {
+            this.select();
+        });
+
+        // Copy to clipboard button
+        copyButton.addEventListener('click', function() {
+            srtOutput.select();
+            document.execCommand('copy');
+            
+            // Visual feedback
+            const originalText = this.textContent;
+            this.textContent = 'Copied!';
+            setTimeout(() => {
+                this.textContent = originalText;
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
