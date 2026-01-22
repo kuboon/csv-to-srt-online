@@ -1,6 +1,9 @@
 const csvInput = document.getElementById('csvInput');
 const srtOutput = document.getElementById('srtOutput');
 const copyButton = document.getElementById('copyButton');
+const uploadButton = document.getElementById('uploadButton');
+const fileInput = document.getElementById('fileInput');
+const downloadButton = document.getElementById('downloadButton');
 
 // Convert time from HH:MM:SS:FF format to HH:MM:SS,mmm format
 // Assuming FF is frames at 30fps (standard frame rate)
@@ -146,4 +149,63 @@ copyButton.addEventListener('click', async function() {
             button.textContent = originalText;
         }, 2000);
     }
+});
+
+// Upload CSV file button
+uploadButton.addEventListener('click', function() {
+    fileInput.click();
+});
+
+// Handle file upload
+fileInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        // Validate file type
+        if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
+            alert('Please select a CSV file.');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            csvInput.value = e.target.result;
+            // Trigger conversion
+            const srt = csvToSrt(csvInput.value);
+            srtOutput.value = srt;
+        };
+        reader.readAsText(file);
+    }
+});
+
+// Download SRT file button
+downloadButton.addEventListener('click', function() {
+    const srtContent = srtOutput.value;
+    if (!srtContent || srtContent.trim() === '') {
+        alert('No SRT content to download. Please convert CSV first.');
+        return;
+    }
+    
+    // Create a blob with the SRT content
+    const blob = new Blob([srtContent], { type: 'application/x-subrip' });
+    
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'subtitles.srt';
+    
+    // Trigger download
+    document.body.appendChild(a);
+    a.click();
+    
+    // Cleanup
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Visual feedback
+    const originalText = this.textContent;
+    this.textContent = 'Downloaded!';
+    setTimeout(() => {
+        this.textContent = originalText;
+    }, 2000);
 });

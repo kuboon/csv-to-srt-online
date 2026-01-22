@@ -107,6 +107,10 @@
         <div class="panel">
             <h2>CSV Input</h2>
             <textarea id="csvInput" placeholder="Paste your CSV here...&#10;Format: Speaker Name, Start Time, End Time, Text&#10;Example:&#10;,00:00:00:13,00:00:02:06,運営します&#10;,00:00:02:06,00:00:03:29,言いますね"></textarea>
+            <div class="button-container">
+                <button id="uploadButton">Upload CSV File</button>
+                <input type="file" id="fileInput" accept=".csv" style="display: none;">
+            </div>
             <div class="info">Paste CSV with format: Speaker Name, Start Time, End Time, Text</div>
         </div>
         <div class="panel">
@@ -114,6 +118,7 @@
             <textarea id="srtOutput" readonly placeholder="SRT output will appear here..."></textarea>
             <div class="button-container">
                 <button id="copyButton">Copy to Clipboard</button>
+                <button id="downloadButton">Download SRT File</button>
             </div>
         </div>
     </div>
