@@ -4,6 +4,7 @@ const copyButton = document.getElementById('copyButton');
 const uploadButton = document.getElementById('uploadButton');
 const fileInput = document.getElementById('fileInput');
 const downloadButton = document.getElementById('downloadButton');
+const removeGapsCheckbox = document.getElementById('removeGapsCheckbox');
 
 // Convert time from HH:MM:SS:FF format to HH:MM:SS,mmm format
 // Assuming FF is frames at 30fps (standard frame rate)
@@ -31,7 +32,7 @@ function convertTime(timeStr) {
 }
 
 // Parse CSV and convert to SRT
-function csvToSrt(csvText) {
+function csvToSrt(csvText, removeGaps = true) {
     if (!csvText || csvText.trim() === '') {
         return '';
     }
@@ -62,6 +63,14 @@ function csvToSrt(csvText) {
                     text: text.trim()
                 });
             }
+        }
+    }
+
+    // Remove gaps if enabled
+    if (removeGaps) {
+        for (let i = 1; i < subtitles.length; i++) {
+            // Set current subtitle's start time to previous subtitle's end time
+            subtitles[i].start = subtitles[i - 1].end;
         }
     }
 
@@ -113,7 +122,15 @@ function parseCSVLine(line) {
 
 // Convert CSV to SRT on input
 csvInput.addEventListener('input', function() {
-    const srt = csvToSrt(this.value);
+    const removeGaps = removeGapsCheckbox.checked;
+    const srt = csvToSrt(this.value, removeGaps);
+    srtOutput.value = srt;
+});
+
+// Re-convert when checkbox state changes
+removeGapsCheckbox.addEventListener('change', function() {
+    const removeGaps = this.checked;
+    const srt = csvToSrt(csvInput.value, removeGaps);
     srtOutput.value = srt;
 });
 
@@ -170,7 +187,8 @@ fileInput.addEventListener('change', function(event) {
         reader.onload = function(e) {
             csvInput.value = e.target.result;
             // Trigger conversion
-            const srt = csvToSrt(csvInput.value);
+            const removeGaps = removeGapsCheckbox.checked;
+            const srt = csvToSrt(csvInput.value, removeGaps);
             srtOutput.value = srt;
         };
         reader.readAsText(file);

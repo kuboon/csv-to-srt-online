@@ -89,6 +89,26 @@
             color: #666;
         }
 
+        .checkbox-container {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-container label {
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
         /* Responsive layout - switch to vertical on portrait orientation or narrow screens */
         @media (max-aspect-ratio: 1/1), (max-width: 768px) {
             .container {
@@ -116,6 +136,10 @@
         <div class="panel">
             <h2>SRT Output</h2>
             <textarea id="srtOutput" readonly placeholder="SRT output will appear here..."></textarea>
+            <div class="checkbox-container">
+                <input type="checkbox" id="removeGapsCheckbox" checked>
+                <label for="removeGapsCheckbox">隙間をなくす</label>
+            </div>
             <div class="button-container">
                 <button id="copyButton">Copy to Clipboard</button>
                 <button id="downloadButton">Download SRT File</button>
