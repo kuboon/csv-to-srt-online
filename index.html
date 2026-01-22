@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to SRT Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            min-width: 0;
+        }
+
+        .panel:first-child {
+            border-right: 2px solid #ddd;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            padding: 12px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .button-container {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:active {
+            background-color: #3d8b40;
+        }
+
+        .info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Responsive layout - switch to vertical on portrait orientation or narrow screens */
+        @media (max-aspect-ratio: 1/1), (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .panel:first-child {
+                border-right: none;
+                border-bottom: 2px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <h2>CSV Input</h2>
+            <textarea id="csvInput" placeholder="Paste your CSV here...&#10;Format: Speaker Name, Start Time, End Time, Text&#10;Example:&#10;,00:00:00:13,00:00:02:06,運営します&#10;,00:00:02:06,00:00:03:29,言いますね"></textarea>
+            <div class="info">Paste CSV with format: Speaker Name, Start Time, End Time, Text</div>
+        </div>
+        <div class="panel">
+            <h2>SRT Output</h2>
+            <textarea id="srtOutput" readonly placeholder="SRT output will appear here..."></textarea>
+            <div class="button-container">
+                <button id="copyButton">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
