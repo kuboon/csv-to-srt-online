@@ -42,7 +42,7 @@ function csvToSrt(csvText, removeGaps = true) {
         const subtitles = [];
 
         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].replace(/^\s*[\r\n]+\s*|\s*[\r\n]+\s*$/g, ''); // Trim only newlines, not tabs
+            const line = lines[i].replace(/^[\r\n]+|[\r\n]+$/g, ''); // Remove only leading/trailing newlines, preserve tabs and spaces
             
             // Skip empty lines and header
             if (!line || line.toLowerCase().includes('speaker name')) {
