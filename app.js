@@ -1,4 +1,4 @@
-import { convertTime, parseCSVLine, csvToSrt } from './lib.js';
+import { csvToSrt } from './lib.js';
 
 const csvInput = document.getElementById('csvInput');
 const srtOutput = document.getElementById('srtOutput');

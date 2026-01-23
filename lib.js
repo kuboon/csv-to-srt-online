@@ -23,39 +23,6 @@ export function convertTime(timeStr) {
     return `${hours}:${minutes}:${seconds},${ms}`;
 }
 
-// Simple CSV line parser (handles quoted fields and escaped quotes)
-// Also supports tab-separated values for spreadsheet copy/paste
-export function parseCSVLine(line) {
-    const fields = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        const nextChar = line[i + 1];
-
-        if (char === '"') {
-            if (inQuotes && nextChar === '"') {
-                // Escaped quote ("") - add one quote to the field
-                current += '"';
-                i++; // Skip next quote
-            } else {
-                // Toggle quote state
-                inQuotes = !inQuotes;
-            }
-        } else if ((char === ',' || char === '\t') && !inQuotes) {
-            // Split on comma or tab when not in quotes (for spreadsheet support)
-            fields.push(current);
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-    fields.push(current);
-
-    return fields;
-}
-
 // Parse CSV and convert to SRT
 export function csvToSrt(csvText, removeGaps = true) {
     try {
@@ -63,19 +30,17 @@ export function csvToSrt(csvText, removeGaps = true) {
             return '';
         }
 
-        const lines = csvText.split('\n');
+        const rows = parseCSVRows(csvText);
         const subtitles = [];
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].replace(/^[\r\n]+|[\r\n]+$/g, ''); // Remove only leading/trailing newlines, preserve tabs and spaces
+        for (let i = 0; i < rows.length; i++) {
+            const fields = rows[i];
             
-            // Skip empty lines and header
-            if (!line || line.toLowerCase().includes('speaker name')) {
+            // Skip empty rows and header
+            if (fields.length === 0 || fields.join('').trim() === '' || 
+                fields.join(',').toLowerCase().includes('speaker name')) {
                 continue;
             }
-
-            // Parse CSV line (simple parser that handles basic CSV)
-            const fields = parseCSVLine(line);
             
             if (fields.length >= 4) {
                 const startTime = convertTime(fields[1]);
@@ -116,4 +81,88 @@ export function csvToSrt(csvText, removeGaps = true) {
     } catch (error) {
         return `Error generating SRT: ${error.message}`;
     }
+}
+
+// Parse CSV text into rows, handling quoted fields that may contain newlines
+export function parseCSVRows(csvText) {
+    const rows = [];
+    let currentRow = [];
+    let currentField = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < csvText.length; i++) {
+        const char = csvText[i];
+        const nextChar = csvText[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                // Escaped quote ("") - add one quote to the field
+                currentField += '"';
+                i++; // Skip next quote
+            } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+            }
+        } else if ((char === ',' || char === '\t') && !inQuotes) {
+            // Split on comma or tab when not in quotes (for spreadsheet support)
+            currentRow.push(currentField);
+            currentField = '';
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+            // End of row when not in quotes
+            if (char === '\r' && nextChar === '\n') {
+                i++; // Skip \n in \r\n
+            }
+            // Only add row if we have some content
+            if (currentField !== '' || currentRow.length > 0) {
+                currentRow.push(currentField);
+                rows.push(currentRow);
+                currentRow = [];
+                currentField = '';
+            }
+        } else {
+            // Add character to current field (including newlines when inside quotes)
+            currentField += char;
+        }
+    }
+
+    // Add the last field and row if there's any content
+    if (currentField !== '' || currentRow.length > 0) {
+        currentRow.push(currentField);
+        rows.push(currentRow);
+    }
+
+    return rows;
+}
+
+// Simple CSV line parser (handles quoted fields and escaped quotes)
+// Also supports tab-separated values for spreadsheet copy/paste
+export function parseCSVLine(line) {
+    const fields = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                // Escaped quote ("") - add one quote to the field
+                current += '"';
+                i++; // Skip next quote
+            } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+            }
+        } else if ((char === ',' || char === '\t') && !inQuotes) {
+            // Split on comma or tab when not in quotes (for spreadsheet support)
+            fields.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    fields.push(current);
+
+    return fields;
 }

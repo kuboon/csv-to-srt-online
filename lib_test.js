@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import { convertTime, parseCSVLine, csvToSrt } from "./lib.js";
+import { convertTime, parseCSVLine, parseCSVRows, csvToSrt } from "./lib.js";
 
 Deno.test("convertTime - valid time conversion", () => {
     assertEquals(convertTime("00:00:00:13"), "00:00:00,433");
@@ -41,6 +41,59 @@ Deno.test("parseCSVLine - escaped quotes", () => {
 Deno.test("parseCSVLine - empty fields", () => {
     assertEquals(parseCSVLine(",,"), ["", "", ""]);
     assertEquals(parseCSVLine("a,,c"), ["a", "", "c"]);
+});
+
+Deno.test("parseCSVRows - simple CSV", () => {
+    const csv = "a,b,c\nd,e,f";
+    const expected = [
+        ["a", "b", "c"],
+        ["d", "e", "f"]
+    ];
+    assertEquals(parseCSVRows(csv), expected);
+});
+
+Deno.test("parseCSVRows - handles multiline quoted fields", () => {
+    const csv = '"field1","multiline\nfield","field3"\n"a","b","c"';
+    const expected = [
+        ["field1", "multiline\nfield", "field3"],
+        ["a", "b", "c"]
+    ];
+    assertEquals(parseCSVRows(csv), expected);
+});
+
+Deno.test("parseCSVRows - handles tab-separated values", () => {
+    const csv = "a\tb\tc\nd\te\tf";
+    const expected = [
+        ["a", "b", "c"],
+        ["d", "e", "f"]
+    ];
+    assertEquals(parseCSVRows(csv), expected);
+});
+
+Deno.test("parseCSVRows - handles escaped quotes", () => {
+    const csv = '"He said ""hello""","normal field"';
+    const expected = [
+        ['He said "hello"', "normal field"]
+    ];
+    assertEquals(parseCSVRows(csv), expected);
+});
+
+Deno.test("parseCSVRows - handles CRLF line endings", () => {
+    const csv = "a,b,c\r\nd,e,f";
+    const expected = [
+        ["a", "b", "c"],
+        ["d", "e", "f"]
+    ];
+    assertEquals(parseCSVRows(csv), expected);
+});
+
+Deno.test("parseCSVRows - handles empty rows", () => {
+    const csv = "a,b,c\n\nd,e,f";
+    const expected = [
+        ["a", "b", "c"],
+        ["d", "e", "f"]
+    ];
+    assertEquals(parseCSVRows(csv), expected);
 });
 
 Deno.test("csvToSrt - basic conversion", () => {
@@ -119,4 +172,11 @@ Deno.test("csvToSrt - trims text", () => {
     const result = csvToSrt(csv, false);
     assertEquals(result.includes("Text with spaces"), true);
     assertEquals(result.includes("  Text with spaces  "), false);
+});
+
+Deno.test("csvToSrt - handles multiline quoted fields", () => {
+    const csv = `,"00:00:00:00","00:00:02:00","Line 1
+Line 2"`;
+    const result = csvToSrt(csv, false);
+    assertEquals(result.includes("Line 1\nLine 2"), true);
 });
