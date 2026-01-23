@@ -38,14 +38,11 @@ function csvToSrt(csvText, removeGaps = true) {
             return '';
         }
 
-        // Convert tabs to commas to support spreadsheet copy/paste
-        csvText = csvText.replace(/\t/g, ',');
-
         const lines = csvText.split('\n');
         const subtitles = [];
 
         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
+            const line = lines[i].replace(/^\s*[\r\n]+\s*|\s*[\r\n]+\s*$/g, ''); // Trim only newlines, not tabs
             
             // Skip empty lines and header
             if (!line || line.toLowerCase().includes('speaker name')) {
@@ -97,6 +94,7 @@ function csvToSrt(csvText, removeGaps = true) {
 }
 
 // Simple CSV line parser (handles quoted fields and escaped quotes)
+// Also supports tab-separated values for spreadsheet copy/paste
 function parseCSVLine(line) {
     const fields = [];
     let current = '';
@@ -115,7 +113,8 @@ function parseCSVLine(line) {
                 // Toggle quote state
                 inQuotes = !inQuotes;
             }
-        } else if (char === ',' && !inQuotes) {
+        } else if ((char === ',' || char === '\t') && !inQuotes) {
+            // Split on comma or tab when not in quotes (for spreadsheet support)
             fields.push(current);
             current = '';
         } else {
