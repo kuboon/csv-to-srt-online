@@ -8,6 +8,9 @@ const fileInput = document.getElementById("fileInput");
 const downloadButton = document.getElementById("downloadButton");
 const removeGapsCheckbox = document.getElementById("removeGapsCheckbox");
 
+// Store uploaded CSV filename
+let uploadedFileName = null;
+
 // Convert CSV to SRT on input
 csvInput.addEventListener("input", function () {
   const removeGaps = removeGapsCheckbox.checked;
@@ -71,6 +74,9 @@ fileInput.addEventListener("change", function (event) {
       return;
     }
 
+    // Store filename (without .csv extension)
+    uploadedFileName = file.name.replace(/\.csv$/i, "");
+
     const reader = new FileReader();
     reader.onload = function (e) {
       csvInput.value = e.target.result;
@@ -98,7 +104,8 @@ downloadButton.addEventListener("click", function () {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "subtitles.srt";
+  // Use uploaded filename if available, otherwise use default
+  a.download = uploadedFileName ? `${uploadedFileName}.srt` : "subtitles.srt";
 
   // Trigger download
   document.body.appendChild(a);
