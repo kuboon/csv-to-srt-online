@@ -15,6 +15,11 @@ tool.
 - 🌐 Works in browsers and via CLI
 - 📦 Available on [JSR](https://jsr.io/@kuboon/csv-to-srt)
 
+## Use on your browser
+https://kuboon.github.io/csv-to-srt-online/
+It does not send your csv to any server.
+All processing is completed within the browser.
+
 ## Installation
 
 ### As a Library
