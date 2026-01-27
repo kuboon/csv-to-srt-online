@@ -1,4 +1,6 @@
-import { csvToSrt } from "./lib.js";
+/// <reference lib="dom" />
+
+import { csvToSrt } from "./src/lib.js";
 
 const csvInput = document.getElementById("csvInput");
 const srtOutput = document.getElementById("srtOutput");
@@ -31,8 +33,8 @@ srtOutput.addEventListener("focus", function () {
 });
 
 // Copy to clipboard button
-copyButton.addEventListener("click", async function () {
-  const button = this;
+copyButton.addEventListener("click", async function (e) {
+  const button = e.currentTarget;
   const originalText = button.textContent;
 
   try {

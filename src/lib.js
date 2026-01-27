@@ -1,6 +1,40 @@
-// Convert time from HH:MM:SS:FF format to HH:MM:SS,mmm format
-// Assuming FF is frames at 30fps (standard frame rate)
-// Supports both : and ; as delimiters
+/* @ts-self-types="./lib.d.ts" */
+
+/**
+ * CSV to SRT subtitle converter library.
+ *
+ * This module provides utilities to convert CSV files to SRT (SubRip) subtitle format.
+ * Supports multiple CSV formats and handles time conversion from frame-based to millisecond-based timecodes.
+ *
+ * @example
+ * ```js
+ * import { csvToSrt } from "@kuboon/csv-to-srt";
+ *
+ * const csv = `00:00:01:00,00:00:03:00,Hello World
+ * 00:00:03:00,00:00:05:00,This is a test`;
+ *
+ * const srt = csvToSrt(csv, { removeGaps: true });
+ * console.log(srt);
+ * ```
+ *
+ * @module
+ */
+
+/**
+ * Convert time from HH:MM:SS:FF format to HH:MM:SS,mmm format.
+ *
+ * Supports both : and ; as delimiters. Assumes FF is frames at 30fps (standard frame rate).
+ * Common frame rates: 24fps (film), 25fps (PAL), 30fps (NTSC), 29.97fps (NTSC drop-frame).
+ *
+ * @param {string} timeStr - Time string in HH:MM:SS:FF format
+ * @returns {string | null} Time string in HH:MM:SS,mmm format, or null if invalid
+ *
+ * @example
+ * ```js
+ * convertTime("00:00:01:15"); // "00:00:01,500"
+ * convertTime("00:00:03;00"); // "00:00:03,000"
+ * ```
+ */
 export function convertTime(timeStr) {
   if (!timeStr || timeStr.trim() === "") {
     return null;
@@ -25,10 +59,50 @@ export function convertTime(timeStr) {
   return `${hours}:${minutes}:${seconds},${ms}`;
 }
 
-// Parse CSV and convert to SRT
+/**
+ * Parse CSV text and convert to SRT subtitle format.
+ *
+ * Supports two CSV formats:
+ * - 3-column: start_time, end_time, text
+ * - 4-column: speaker_name, start_time, end_time, text
+ *
+ * Time format should be HH:MM:SS:FF where FF represents frames at 30fps.
+ *
+ * @param {string} csvText - CSV text to convert
+ * @param {Object} [options={}] - Conversion options
+ * @param {boolean} [options.removeGaps=true] - Remove gaps between subtitles by adjusting start times
+ * @returns {string} SRT formatted subtitle text
+ *
+ * @example
+ * ```js
+ * import { csvToSrt } from "@kuboon/csv-to-srt";
+ *
+ * const csv = `00:00:01:00,00:00:03:00,Hello World
+ * 00:00:03:00,00:00:05:00,This is a test`;
+ *
+ * const srt = csvToSrt(csv, { removeGaps: true });
+ * // Output:
+ * // 1
+ * // 00:00:01,000 --> 00:00:03,000
+ * // Hello World
+ * //
+ * // 2
+ * // 00:00:03,000 --> 00:00:05,000
+ * // This is a test
+ * ```
+ *
+ * @example
+ * ```js
+ * // 4-column format with speaker names
+ * const csv = `Speaker A,00:00:01:00,00:00:03:00,Hello
+ * Speaker B,00:00:03:00,00:00:05:00,World`;
+ *
+ * const srt = csvToSrt(csv);
+ * ```
+ */
 export function csvToSrt(csvText, options = {}) {
   const { removeGaps = true } = options;
-  
+
   try {
     if (!csvText || csvText.trim() === "") {
       return "";
@@ -107,7 +181,26 @@ export function csvToSrt(csvText, options = {}) {
   }
 }
 
-// Parse CSV text into rows, handling quoted fields that may contain newlines
+/**
+ * Parse CSV text into rows, handling quoted fields that may contain newlines.
+ *
+ * Supports both comma and tab delimiters. Properly handles:
+ * - Quoted fields with embedded commas, newlines, and tabs
+ * - Escaped quotes ("" becomes ")
+ * - Windows (\\r\\n), Unix (\\n), and Mac (\\r) line endings
+ *
+ * @param {string} csvText - CSV text to parse
+ * @returns {string[][]} Array of rows, where each row is an array of field values
+ *
+ * @example
+ * ```js
+ * parseCSVRows('a,b,c\n1,2,3');
+ * // [["a", "b", "c"], ["1", "2", "3"]]
+ *
+ * parseCSVRows('"hello","world with ""quotes"""');
+ * // [["hello", "world with \"quotes\""]]
+ * ```
+ */
 export function parseCSVRows(csvText) {
   const rows = [];
   let currentRow = [];
@@ -158,8 +251,23 @@ export function parseCSVRows(csvText) {
   return rows;
 }
 
-// Simple CSV line parser (handles quoted fields and escaped quotes)
-// Also supports tab-separated values for spreadsheet copy/paste
+/**
+ * Parse a single CSV line into fields, handling quoted fields and escaped quotes.
+ *
+ * Also supports tab-separated values for spreadsheet copy/paste.
+ *
+ * @param {string} line - CSV line to parse
+ * @returns {string[]} Array of field values
+ *
+ * @example
+ * ```js
+ * parseCSVLine('a,b,c');
+ * // ["a", "b", "c"]
+ *
+ * parseCSVLine('"hello, world","test"');
+ * // ["hello, world", "test"]
+ * ```
+ */
 export function parseCSVLine(line) {
   const fields = [];
   let current = "";

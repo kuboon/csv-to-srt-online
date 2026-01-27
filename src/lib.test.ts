@@ -126,13 +126,13 @@ Deno.test("csvToSrt - basic conversion", () => {
 00:00:02,200 --> 00:00:03,967
 言いますね
 `;
-  assertEquals(csvToSrt(csv, false), expected);
+  assertEquals(csvToSrt(csv, { removeGaps: false }), expected);
 });
 
 Deno.test("csvToSrt - removes gaps when enabled", () => {
   const csv = `,00:00:00:00,00:00:01:00,First subtitle
 ,00:00:02:00,00:00:03:00,Second subtitle`;
-  const result = csvToSrt(csv, true);
+  const result = csvToSrt(csv, { removeGaps: true });
 
   // The second subtitle should start where the first one ends
   const lines = result.split("\n");
@@ -142,7 +142,7 @@ Deno.test("csvToSrt - removes gaps when enabled", () => {
 Deno.test("csvToSrt - preserves gaps when disabled", () => {
   const csv = `,00:00:00:00,00:00:01:00,First subtitle
 ,00:00:02:00,00:00:03:00,Second subtitle`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
 
   // The second subtitle should keep its original start time
   const lines = result.split("\n");
@@ -153,7 +153,7 @@ Deno.test("csvToSrt - skips empty lines", () => {
   const csv = `,00:00:00:00,00:00:01:00,First
 
 ,00:00:02:00,00:00:03:00,Second`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 2);
 });
@@ -161,7 +161,7 @@ Deno.test("csvToSrt - skips empty lines", () => {
 Deno.test("csvToSrt - skips header", () => {
   const csv = `Speaker Name,Start Time,End Time,Text
 ,00:00:00:00,00:00:01:00,Subtitle text`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 1);
 });
@@ -175,20 +175,20 @@ Deno.test("csvToSrt - skips invalid lines", () => {
   const csv = `,00:00:00:00,00:00:01:00,Valid subtitle
 invalid line
 ,00:00:02:00,00:00:03:00,Another valid`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 2);
 });
 
 Deno.test("csvToSrt - handles quoted text with commas", () => {
   const csv = `,"00:00:00:00","00:00:01:00","Hello, world!"`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   assertEquals(result.includes("Hello, world!"), true);
 });
 
 Deno.test("csvToSrt - trims text", () => {
   const csv = `,00:00:00:00,00:00:01:00,  Text with spaces  `;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   assertEquals(result.includes("Text with spaces"), true);
   assertEquals(result.includes("  Text with spaces  "), false);
 });
@@ -196,7 +196,7 @@ Deno.test("csvToSrt - trims text", () => {
 Deno.test("csvToSrt - handles multiline quoted fields", () => {
   const csv = `,"00:00:00:00","00:00:02:00","Line 1
 Line 2"`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   assertEquals(result.includes("Line 1\nLine 2"), true);
 });
 
@@ -211,13 +211,13 @@ Deno.test("csvToSrt - handles 3-column format (no speaker name)", () => {
 00:00:02,200 --> 00:00:03,967
 言いますね
 `;
-  assertEquals(csvToSrt(csv, false), expected);
+  assertEquals(csvToSrt(csv, { removeGaps: false }), expected);
 });
 
 Deno.test("csvToSrt - handles 3-column format with gap removal", () => {
   const csv = `00:00:00:00,00:00:01:00,First subtitle
 00:00:02:00,00:00:03:00,Second subtitle`;
-  const result = csvToSrt(csv, true);
+  const result = csvToSrt(csv);
 
   // The second subtitle should start where the first one ends
   const lines = result.split("\n");
@@ -235,13 +235,13 @@ Speaker B,00:00:02:06,00:00:03:29,言いますね`;
 00:00:02,200 --> 00:00:03,967
 言いますね
 `;
-  assertEquals(csvToSrt(csv, false), expected);
+  assertEquals(csvToSrt(csv, { removeGaps: false }), expected);
 });
 
 Deno.test("csvToSrt - handles mixed 3 and 4 column formats", () => {
   const csv = `Speaker A,00:00:00:00,00:00:01:00,First subtitle
 00:00:01:00,00:00:02:00,Second subtitle`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 2);
   assertEquals(result.includes("First subtitle"), true);
@@ -251,7 +251,7 @@ Deno.test("csvToSrt - handles mixed 3 and 4 column formats", () => {
 Deno.test("csvToSrt - handles 3-column format with quoted fields", () => {
   const csv = `"00:00:00:00","00:00:01:00","Hello, world!"
 "00:00:01:00","00:00:02:00","Goodbye, world!"`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   assertEquals(result.includes("Hello, world!"), true);
   assertEquals(result.includes("Goodbye, world!"), true);
 });
@@ -260,7 +260,7 @@ Deno.test("csvToSrt - skips header with 'Start Time End Time Text'", () => {
   const csv = `Start Time\tEnd Time\tText
 00:00:00:00\t00:00:01:00\tFirst subtitle
 00:00:01:00\t00:00:02:00\tSecond subtitle`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 2);
   assertEquals(result.includes("First subtitle"), true);
@@ -280,14 +280,14 @@ Deno.test("csvToSrt - handles 3-column format with tab-separated header", () => 
 00:00:02,200 --> 00:00:03,967
 言いますね
 `;
-  assertEquals(csvToSrt(csv, false), expected);
+  assertEquals(csvToSrt(csv, { removeGaps: false }), expected);
 });
 
 Deno.test("csvToSrt - handles 3-column format with comma-separated header", () => {
   const csv = `Start Time,End Time,Text
 00:00:00:00,00:00:01:00,First subtitle
 00:00:01:00,00:00:02:00,Second subtitle`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 2);
   assertEquals(result.includes("Start Time"), false);
@@ -297,7 +297,7 @@ Deno.test("csvToSrt - handles 3-column format with extra columns", () => {
   const csv = `Start Time,End Time,Text,Extra Column,Another One
 00:00:00:00,00:00:01:00,First subtitle,ignored,also ignored
 00:00:01:00,00:00:02:00,Second subtitle,data,more data`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 2);
   assertEquals(result.includes("First subtitle"), true);
@@ -309,7 +309,7 @@ Deno.test("csvToSrt - handles 4-column format with extra columns", () => {
   const csv = `Speaker,Start Time,End Time,Text,Notes,Other
 Speaker A,00:00:00:00,00:00:01:00,First subtitle,note1,other1
 Speaker B,00:00:01:00,00:00:02:00,Second subtitle,note2,other2`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 2);
   assertEquals(result.includes("First subtitle"), true);
@@ -321,7 +321,7 @@ Speaker B,00:00:01:00,00:00:02:00,Second subtitle,note2,other2`;
 Deno.test("csvToSrt - normalizes Windows line endings (CRLF)", () => {
   const csv =
     `00:00:00:00,00:00:01:00,First subtitle\r\n00:00:01:00,00:00:02:00,Second subtitle`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 2);
   assertEquals(result.includes("First subtitle"), true);
@@ -331,7 +331,7 @@ Deno.test("csvToSrt - normalizes Windows line endings (CRLF)", () => {
 Deno.test("csvToSrt - normalizes Mac line endings (CR)", () => {
   const csv =
     `00:00:00:00,00:00:01:00,First subtitle\r00:00:01:00,00:00:02:00,Second subtitle`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 2);
   assertEquals(result.includes("First subtitle"), true);
@@ -341,7 +341,7 @@ Deno.test("csvToSrt - normalizes Mac line endings (CR)", () => {
 Deno.test("csvToSrt - handles mixed line endings", () => {
   const csv =
     `Start Time,End Time,Text\r\n00:00:00:00,00:00:01:00,First\n00:00:01:00,00:00:02:00,Second\r00:00:02:00,00:00:03:00,Third`;
-  const result = csvToSrt(csv, false);
+  const result = csvToSrt(csv, { removeGaps: false });
   const subtitleCount = (result.match(/^\d+$/gm) || []).length;
   assertEquals(subtitleCount, 3);
   assertEquals(result.includes("First"), true);
