@@ -26,7 +26,9 @@ export function convertTime(timeStr) {
 }
 
 // Parse CSV and convert to SRT
-export function csvToSrt(csvText, removeGaps = true) {
+export function csvToSrt(csvText, options = {}) {
+  const { removeGaps = true } = options;
+  
   try {
     if (!csvText || csvText.trim() === "") {
       return "";

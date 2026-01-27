@@ -1,4 +1,13 @@
 {
+  "name": "@kuboon/csv-to-srt",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./lib.js",
+    "./cli": "./cli.js"
+  },
+  "bin": {
+    "csv-to-srt": "./cli.js"
+  },
   "tasks": {
     "test": "deno test",
     "serve": "deno run --allow-net --allow-read=. jsr:@std/http/file-server"

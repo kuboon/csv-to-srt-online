@@ -14,14 +14,14 @@ let uploadedFileName = null;
 // Convert CSV to SRT on input
 csvInput.addEventListener("input", function () {
   const removeGaps = removeGapsCheckbox.checked;
-  const srt = csvToSrt(this.value, removeGaps);
+  const srt = csvToSrt(this.value, { removeGaps });
   srtOutput.value = srt;
 });
 
 // Re-convert when checkbox state changes
 removeGapsCheckbox.addEventListener("change", function () {
   const removeGaps = this.checked;
-  const srt = csvToSrt(csvInput.value, removeGaps);
+  const srt = csvToSrt(csvInput.value, { removeGaps });
   srtOutput.value = srt;
 });
 
@@ -82,7 +82,7 @@ fileInput.addEventListener("change", function (event) {
       csvInput.value = e.target.result;
       // Trigger conversion
       const removeGaps = removeGapsCheckbox.checked;
-      const srt = csvToSrt(csvInput.value, removeGaps);
+      const srt = csvToSrt(csvInput.value, { removeGaps });
       srtOutput.value = srt;
     };
     reader.readAsText(file);
