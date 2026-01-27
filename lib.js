@@ -1,11 +1,13 @@
 // Convert time from HH:MM:SS:FF format to HH:MM:SS,mmm format
 // Assuming FF is frames at 30fps (standard frame rate)
+// Supports both : and ; as delimiters
 export function convertTime(timeStr) {
   if (!timeStr || timeStr.trim() === "") {
     return null;
   }
 
-  const parts = timeStr.trim().split(":");
+  // Support both : and ; as time delimiters
+  const parts = timeStr.trim().split(/[:;]/);
   if (parts.length !== 4) {
     return null;
   }

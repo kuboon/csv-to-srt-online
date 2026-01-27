@@ -11,6 +11,13 @@ Deno.test("convertTime - handles padding", () => {
   assertEquals(convertTime("1:2:3:4"), "01:02:03,133");
 });
 
+Deno.test("convertTime - handles semicolon delimiter", () => {
+  assertEquals(convertTime("00;00;00;13"), "00:00:00,433");
+  assertEquals(convertTime("00;00;02;06"), "00:00:02,200");
+  assertEquals(convertTime("01;23;45;29"), "01:23:45,967");
+  assertEquals(convertTime("1;2;3;4"), "01:02:03,133");
+});
+
 Deno.test("convertTime - invalid input returns null", () => {
   assertEquals(convertTime(""), null);
   assertEquals(convertTime("  "), null);
